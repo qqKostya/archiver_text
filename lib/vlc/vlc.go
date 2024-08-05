@@ -5,17 +5,75 @@ import (
 	"unicode"
 )
 
-func Encode(str string)string{
+type encodingTable map[rune]string
+
+func Encode(str string) string {
 	str = prepareText(str)
+	bStr := encodeBin(str)
 	return ""
+}
+
+// encodeBin encodes str into binary codes string without spaces
+func encodeBin(str string) string {
+	var buf strings.Builder
+
+	for _, ch := range str {
+		buf.WriteString(bin(ch))
+	}
+
+	return buf.String()
+}
+
+func bin(ch rune) string {
+	table := getEncodingTable()
+	res, ok := table[ch]
+	
+	if !ok {
+		panic("unknown character: " + string(ch))
+	}
+	
+	return res
+}
+
+func getEncodingTable() encodingTable {
+	return encodingTable{
+		' ': "11",
+		't': "1001",
+		'n': "10000",
+		's': "0101",
+		'r': "01000",
+		'd': "00101",
+		'!': "001000",
+		'c': "000101",
+		'm': "000011",
+		'g': "0000100",
+		'b': "0000010",
+		'v': "00000001",
+		'k': "0000000001",
+		'q': "000000000001",
+		'e': "101",
+		'o': "10001",
+		'a': "011",
+		'i': "01001",
+		'h': "0011",
+		'L': "001001",
+		'U': "00011",
+		'f': "000100",
+		'p': "0000101",
+		'w': "0000011",
+		'y': "0000001",
+		'j': "",
+		'x': "00000000001",
+		'z': "000000000000",
+	}
 }
 
 // prepareText prepares text to be fit in encode:
 // changes upper case latters to: ! + lower case latter
 // i.g.: My name is Ted -> !my name is !ted
-func prepareText(str string) string{
+func prepareText(str string) string {
 	var buf strings.Builder
-	
+
 	for _, ch := range str {
 		if unicode.IsUpper(ch) {
 			buf.WriteRune('!')
@@ -24,6 +82,6 @@ func prepareText(str string) string{
 			buf.WriteRune(ch)
 		}
 	}
-	
+
 	return buf.String()
 }
