@@ -1,16 +1,60 @@
 package vlc
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
+type BinaryChunks []BinaryChunk
+
+type BinaryChunk string
+
 type encodingTable map[rune]string
+
+const chunkSize = 8
 
 func Encode(str string) string {
 	str = prepareText(str)
 	bStr := encodeBin(str)
+	chunk := splitByChanks(bStr, chunkSize)
+	fmt.Println(chunk)
+
 	return ""
+}
+
+// splitByChunks splits binary string by chunks with given size,
+// i.g.: 100101011001010110010101' -> 10010101 10010101 10010101'
+func splitByChanks(bStr string, chunkSize int) BinaryChunks {
+	strLen := utf8.RuneCountInString(bStr)
+	chunkCount := strLen / chunkSize
+
+	if strLen/chunkSize != 0 {
+		chunkCount++
+	}
+
+	res := make(BinaryChunks, 0, chunkCount)
+
+	var buf strings.Builder
+
+	for i, ch := range bStr {
+		buf.WriteString(string(ch))
+
+		if (i+1)%chunkSize == 0 {
+			res = append(res, BinaryChunk(buf.String()))
+			buf.Reset()
+		}
+	}
+
+	if buf.Len() != 0 {
+		lastChunk := buf.String()
+		lastChunk += strings.Repeat("0", chunkSize-len(lastChunk))
+
+		res = append(res, BinaryChunk(lastChunk))
+	}
+
+	return res
 }
 
 // encodeBin encodes str into binary codes string without spaces
@@ -27,11 +71,11 @@ func encodeBin(str string) string {
 func bin(ch rune) string {
 	table := getEncodingTable()
 	res, ok := table[ch]
-	
+
 	if !ok {
 		panic("unknown character: " + string(ch))
 	}
-	
+
 	return res
 }
 
