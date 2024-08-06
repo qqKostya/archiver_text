@@ -2,6 +2,7 @@ package vlc
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -11,17 +12,74 @@ type BinaryChunks []BinaryChunk
 
 type BinaryChunk string
 
+type HexChunks []HexChunk
+
+type HexChunk string
+
 type encodingTable map[rune]string
 
 const chunkSize = 8
 
 func Encode(str string) string {
+	// замена заглавные буквы на прописные с префиксов "!"
 	str = prepareText(str)
+	
+	// представили строку в виде двоичной последовательности
 	bStr := encodeBin(str)
+	
+	// разбили на чанки
 	chunk := splitByChanks(bStr, chunkSize)
-	fmt.Println(chunk)
 
-	return ""
+	return chunk.ToHex().ToString()
+}
+
+func (hcs HexChunks) ToString() string {
+	const sep = " "
+
+	switch len(hcs) {
+	case 0:
+		return ""
+	case 1:
+		return string(hcs[0])
+	}
+
+	var buf strings.Builder
+
+	buf.WriteString(string(hcs[0]))
+	for _, hc := range hcs[1:] {
+		buf.WriteString(sep)
+		buf.WriteString(string(hc))
+	}
+
+	return buf.String()
+}
+
+func (bsc BinaryChunks) ToHex() HexChunks {
+	res := make(HexChunks, 0, len(bsc))
+
+	for _, chunk := range bsc {
+		hexChunk := chunk.ToHex()
+		res = append(res, hexChunk)
+	}
+
+	return res
+}
+
+func (bc BinaryChunk) ToHex() HexChunk {
+	num, err := strconv.ParseUint(string(bc), 2, chunkSize)
+
+	if err != nil {
+		panic("can't parse binary chunk: " + err.Error())
+	}
+
+	// res := strings.ToUpper(fmt.Sprintf("%x", num)) // попробовать тут "X" заместо ToUpper
+	res := fmt.Sprintf("%X", num)
+
+	if len(res) == 1 {
+		res = "0" + res
+	}
+
+	return HexChunk(res)
 }
 
 // splitByChunks splits binary string by chunks with given size,
@@ -100,13 +158,13 @@ func getEncodingTable() encodingTable {
 		'a': "011",
 		'i': "01001",
 		'h': "0011",
-		'L': "001001",
-		'U': "00011",
+		'l': "001001",
+		'u': "00011",
 		'f': "000100",
 		'p': "0000101",
 		'w': "0000011",
 		'y': "0000001",
-		'j': "",
+		'j': "000000001",
 		'x': "00000000001",
 		'z': "000000000000",
 	}

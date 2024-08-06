@@ -87,3 +87,47 @@ func Test_splitByChanks(t *testing.T) {
 		})
 	}
 }
+
+func TestBinaryChunks_ToHex(t *testing.T) {
+	tests := []struct {
+		name string
+		bcs  BinaryChunks
+		want HexChunks
+	}{
+		{
+			name: "base test BinaryChunks_ToHex 1",
+			bcs:  BinaryChunks{"0101111", "10000000"},
+			want: HexChunks{"2F", "80"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.bcs.ToHex(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("BinaryChunks_ToHex() = %v, want: %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestEncode(t *testing.T) {
+	tests := []struct {
+		name string
+		str  string
+		want string
+	}{
+		{
+			name: "base test TestEncode 1",
+			str:  "My name is Ted",
+			want: "20 30 3C 18 77 4A E4 4D 28",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Encode(tt.str); got != tt.want {
+				t.Errorf("BinaryChunks_ToHex() = %v, want: %v", got, tt.want)
+			}
+		})
+	}
+}
