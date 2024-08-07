@@ -19,10 +19,20 @@ type encodingTable map[rune]string
 
 const chunkSize = 8
 
+const hexChunksSeporator = " "
+
+func NewHexChunks(str string) HexChunks {
+	parts := strings.Split(str, hexChunksSeporator)
+	res := make(HexChunks, 0, len(parts))
+
+	for _, part := range parts {
+		res = append(res, HexChunk(part))
+	}
+
+	return res
+}
 
 func (hcs HexChunks) ToString() string {
-	const sep = " "
-
 	switch len(hcs) {
 	case 0:
 		return ""
@@ -34,8 +44,42 @@ func (hcs HexChunks) ToString() string {
 
 	buf.WriteString(string(hcs[0]))
 	for _, hc := range hcs[1:] {
-		buf.WriteString(sep)
+		buf.WriteString(hexChunksSeporator)
 		buf.WriteString(string(hc))
+	}
+
+	return buf.String()
+}
+
+func (hcs HexChunks) ToBinary() BinaryChunks {
+	res := make(BinaryChunks, 0, len(hcs))
+
+	for _, ch := range hcs {
+		bChunk := ch.ToBinary()
+		res = append(res, bChunk)
+	}
+
+	return res
+}
+
+func (hc HexChunk) ToBinary() BinaryChunk {
+	num, err := strconv.ParseUint(string(hc), 16, chunkSize)
+
+	if err != nil {
+		panic("can't parse hex chunk: " + err.Error())
+	}
+
+	res := fmt.Sprintf("%08b", num)
+
+	return BinaryChunk(res)
+}
+
+// Join joins chunks into one line and returns as string.
+func (bcs BinaryChunks) Join() string {
+	var buf strings.Builder
+
+	for _, ch := range bcs {
+		buf.WriteString(string(ch))
 	}
 
 	return buf.String()

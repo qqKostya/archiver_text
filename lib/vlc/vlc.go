@@ -19,6 +19,10 @@ func Encode(str string) string {
 }
 
 func decode(encodedText string) string {
+	hChunks := NewHexChunks(encodedText)
+	bChunks := hChunks.ToBinary()
+	bString := bChunks.Join()
+
 	return ""
 }
 
