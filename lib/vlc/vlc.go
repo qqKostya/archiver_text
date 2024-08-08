@@ -18,12 +18,13 @@ func Encode(str string) string {
 	return chunk.ToHex().ToString()
 }
 
-func decode(encodedText string) string {
+func Decode(encodedText string) string {
 	hChunks := NewHexChunks(encodedText)
 	bChunks := hChunks.ToBinary()
 	bString := bChunks.Join()
+	dTree := getEncodingTable().DecodingTree()
 
-	return ""
+	return exportText(dTree.Decode(bString))
 }
 
 // encodeBin encodes str into binary codes string without spaces
@@ -96,5 +97,30 @@ func prepareText(str string) string {
 		}
 	}
 
+	return buf.String()
+}
+
+// exportText is opposite to prepareText, it prepares decoded text to export:
+// it changes: ! + ‹lower case letter> -> to upper case letter.
+// i.g.: Imy name is !ted -> My name is
+func exportText(str string)string{
+	var buf strings.Builder
+	var isCapital bool
+	
+	for _, ch := range str {
+		if isCapital {
+			buf.WriteRune(unicode.ToUpper(ch))
+			isCapital = false
+			continue
+		}
+		
+		if ch == '!' {
+			isCapital = true
+			continue
+		} else {
+			buf.WriteRune(ch)
+		}
+	}
+	
 	return buf.String()
 }

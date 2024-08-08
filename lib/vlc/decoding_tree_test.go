@@ -1,8 +1,11 @@
 package vlc
 
-import ("testing")
+import (
+	"reflect"
+	"testing"
+)
 
-func Test_encodingTable_Decoding(Treet *testing. T) {
+func Test_encodingTable_Decoding(t *testing. T) {
 	tests := []struct{
 		name string
 		et encodingTable
@@ -26,10 +29,26 @@ func Test_encodingTable_Decoding(Treet *testing. T) {
 					},
 				},
 				One: &DecodingTree{
-					One: &DecodingTree{},
-					Zero: &DecodingTree{},
+					Zero: &DecodingTree{
+						Zero: &DecodingTree{
+							One: &DecodingTree {
+								Value: "b",
+							},
+						},
+					},
+					One: &DecodingTree{
+						Value: "a",
+					},
 				},
 			},
 		},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.et.DecodingTree(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DecodingTree() = %v, want: %v", got, tt.want)
+			}
+		})
 	}
 }
