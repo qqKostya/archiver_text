@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-func Test_encodingTable_Decoding(t *testing. T) {
-	tests := []struct{
+func Test_encodingTable_Decoding(t *testing.T) {
+	tests := []struct {
 		name string
-		et encodingTable
+		et   encodingTable
 		want DecodingTree
-	} {
+	}{
 		{
 			name: "base tree test",
 			et: encodingTable{
@@ -31,7 +31,7 @@ func Test_encodingTable_Decoding(t *testing. T) {
 				One: &DecodingTree{
 					Zero: &DecodingTree{
 						Zero: &DecodingTree{
-							One: &DecodingTree {
+							One: &DecodingTree{
 								Value: "b",
 							},
 						},
@@ -43,7 +43,7 @@ func Test_encodingTable_Decoding(t *testing. T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.et.DecodingTree(); !reflect.DeepEqual(got, tt.want) {

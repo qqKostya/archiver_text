@@ -31,7 +31,7 @@ func pack(_ *cobra.Command, args []string) {
 	if err != nil {
 		handleErr(err)
 	}
-	
+
 	defer r.Close()
 
 	data, err := io.ReadAll(r)
@@ -39,13 +39,13 @@ func pack(_ *cobra.Command, args []string) {
 		handleErr(err)
 	}
 
-	
 	packed := vlc.Encode(string(data))
 
-	err = os.WriteFile(packedFileName(filePath), []byte(packed), 0644)
+	err = os.WriteFile(packedFileName(filePath), packed, 0644)
 	if err != nil {
 		handleErr(err)
 	}
+
 }
 
 func packedFileName(path string) string {

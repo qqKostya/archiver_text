@@ -11,106 +11,42 @@ type BinaryChunks []BinaryChunk
 
 type BinaryChunk string
 
-type HexChunks []HexChunk
-
-type HexChunk string
-
 type encodingTable map[rune]string
 
 const chunkSize = 8
 
-const hexChunksSeporator = " "
+func NewBinChunks(data []byte) BinaryChunks {
+	res := make(BinaryChunks, 0, len(data))
 
-func NewHexChunks(str string) HexChunks {
-	parts := strings.Split(str, hexChunksSeporator)
-	res := make(HexChunks, 0, len(parts))
-
-	for _, part := range parts {
-		res = append(res, HexChunk(part))
+	for _, code := range data {
+		res = append(res, NewBinChunk(code))
 	}
 
 	return res
 }
 
-func (hcs HexChunks) ToString() string {
-	switch len(hcs) {
-	case 0:
-		return ""
-	case 1:
-		return string(hcs[0])
-	}
+func (bcs BinaryChunks) Bytes() []byte {
+	res := make([]byte, 0, len(bcs))
 
-	var buf strings.Builder
-
-	buf.WriteString(string(hcs[0]))
-	for _, hc := range hcs[1:] {
-		buf.WriteString(hexChunksSeporator)
-		buf.WriteString(string(hc))
-	}
-
-	return buf.String()
-}
-
-func (hcs HexChunks) ToBinary() BinaryChunks {
-	res := make(BinaryChunks, 0, len(hcs))
-
-	for _, ch := range hcs {
-		bChunk := ch.ToBinary()
-		res = append(res, bChunk)
+	for _, bc := range bcs {
+		res = append(res, bc.Byte())
 	}
 
 	return res
 }
 
-func (hc HexChunk) ToBinary() BinaryChunk {
-	num, err := strconv.ParseUint(string(hc), 16, chunkSize)
-
-	if err != nil {
-		panic("can't parse hex chunk: " + err.Error())
-	}
-
-	res := fmt.Sprintf("%08b", num)
-
-	return BinaryChunk(res)
-}
-
-// Join joins chunks into one line and returns as string.
-func (bcs BinaryChunks) Join() string {
-	var buf strings.Builder
-
-	for _, ch := range bcs {
-		buf.WriteString(string(ch))
-	}
-
-	return buf.String()
-}
-
-func (bsc BinaryChunks) ToHex() HexChunks {
-	res := make(HexChunks, 0, len(bsc))
-
-	for _, chunk := range bsc {
-		hexChunk := chunk.ToHex()
-		res = append(res, hexChunk)
-	}
-
-	return res
-}
-
-func (bc BinaryChunk) ToHex() HexChunk {
+func (bc BinaryChunk) Byte() byte {
 	num, err := strconv.ParseUint(string(bc), 2, chunkSize)
 
 	if err != nil {
 		panic("can't parse binary chunk: " + err.Error())
 	}
 
-	// res := strings.ToUpper(fmt.Sprintf("%x", num)) // попробовать тут "X" заместо ToUpper
-	res := fmt.Sprintf("%X", num)
+	return byte(num)
+}
 
-	if len(res) == 1 {
-		res = "0" + res
-	}
-
-	return HexChunk(res)
+func NewBinChunk(code byte) BinaryChunk {
+	return BinaryChunk(fmt.Sprintf("%08b", code))
 }
 
 // splitByChunks splits binary string by chunks with given size,
@@ -144,4 +80,15 @@ func splitByChanks(bStr string, chunkSize int) BinaryChunks {
 	}
 
 	return res
+}
+
+// Join joins chunks into one line and returns as string.
+func (bcs BinaryChunks) Join() string {
+	var buf strings.Builder
+
+	for _, ch := range bcs {
+		buf.WriteString(string(ch))
+	}
+
+	return buf.String()
 }

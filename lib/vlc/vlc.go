@@ -5,7 +5,7 @@ import (
 	"unicode"
 )
 
-func Encode(str string) string {
+func Encode(str string) []byte {
 	// замена заглавные буквы на прописные с префиксов "!"
 	str = prepareText(str)
 
@@ -15,13 +15,12 @@ func Encode(str string) string {
 	// разбили на чанки
 	chunk := splitByChanks(bStr, chunkSize)
 
-	return chunk.ToHex().ToString()
+	return chunk.Bytes()
 }
 
-func Decode(encodedText string) string {
-	hChunks := NewHexChunks(encodedText)
-	bChunks := hChunks.ToBinary()
-	bString := bChunks.Join()
+func Decode(encodedDate []byte) string {
+	hChunks := NewBinChunks(encodedDate)
+	bString := hChunks.Join()
 	dTree := getEncodingTable().DecodingTree()
 
 	return exportText(dTree.Decode(bString))
@@ -103,17 +102,17 @@ func prepareText(str string) string {
 // exportText is opposite to prepareText, it prepares decoded text to export:
 // it changes: ! + ‹lower case letter> -> to upper case letter.
 // i.g.: Imy name is !ted -> My name is
-func exportText(str string)string{
+func exportText(str string) string {
 	var buf strings.Builder
 	var isCapital bool
-	
+
 	for _, ch := range str {
 		if isCapital {
 			buf.WriteRune(unicode.ToUpper(ch))
 			isCapital = false
 			continue
 		}
-		
+
 		if ch == '!' {
 			isCapital = true
 			continue
@@ -121,6 +120,6 @@ func exportText(str string)string{
 			buf.WriteRune(ch)
 		}
 	}
-	
+
 	return buf.String()
 }
