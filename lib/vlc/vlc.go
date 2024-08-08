@@ -1,60 +1,30 @@
 package vlc
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 )
 
-type BinaryChunks []BinaryChunk
-
-type BinaryChunk string
-
-type encodingTable map[rune]string
-
-const chunkSize = 8
-
 func Encode(str string) string {
+	// замена заглавные буквы на прописные с префиксов "!"
 	str = prepareText(str)
-	bStr := encodeBin(str)
-	chunk := splitByChanks(bStr, chunkSize)
-	fmt.Println(chunk)
 
-	return ""
+	// представили строку в виде двоичной последовательности
+	bStr := encodeBin(str)
+
+	// разбили на чанки
+	chunk := splitByChanks(bStr, chunkSize)
+
+	return chunk.ToHex().ToString()
 }
 
-// splitByChunks splits binary string by chunks with given size,
-// i.g.: 100101011001010110010101' -> 10010101 10010101 10010101'
-func splitByChanks(bStr string, chunkSize int) BinaryChunks {
-	strLen := utf8.RuneCountInString(bStr)
-	chunkCount := strLen / chunkSize
+func Decode(encodedText string) string {
+	hChunks := NewHexChunks(encodedText)
+	bChunks := hChunks.ToBinary()
+	bString := bChunks.Join()
+	dTree := getEncodingTable().DecodingTree()
 
-	if strLen/chunkSize != 0 {
-		chunkCount++
-	}
-
-	res := make(BinaryChunks, 0, chunkCount)
-
-	var buf strings.Builder
-
-	for i, ch := range bStr {
-		buf.WriteString(string(ch))
-
-		if (i+1)%chunkSize == 0 {
-			res = append(res, BinaryChunk(buf.String()))
-			buf.Reset()
-		}
-	}
-
-	if buf.Len() != 0 {
-		lastChunk := buf.String()
-		lastChunk += strings.Repeat("0", chunkSize-len(lastChunk))
-
-		res = append(res, BinaryChunk(lastChunk))
-	}
-
-	return res
+	return exportText(dTree.Decode(bString))
 }
 
 // encodeBin encodes str into binary codes string without spaces
@@ -100,13 +70,13 @@ func getEncodingTable() encodingTable {
 		'a': "011",
 		'i': "01001",
 		'h': "0011",
-		'L': "001001",
-		'U': "00011",
+		'l': "001001",
+		'u': "00011",
 		'f': "000100",
 		'p': "0000101",
 		'w': "0000011",
 		'y': "0000001",
-		'j': "",
+		'j': "000000001",
 		'x': "00000000001",
 		'z': "000000000000",
 	}
@@ -127,5 +97,30 @@ func prepareText(str string) string {
 		}
 	}
 
+	return buf.String()
+}
+
+// exportText is opposite to prepareText, it prepares decoded text to export:
+// it changes: ! + ‹lower case letter> -> to upper case letter.
+// i.g.: Imy name is !ted -> My name is
+func exportText(str string)string{
+	var buf strings.Builder
+	var isCapital bool
+	
+	for _, ch := range str {
+		if isCapital {
+			buf.WriteRune(unicode.ToUpper(ch))
+			isCapital = false
+			continue
+		}
+		
+		if ch == '!' {
+			isCapital = true
+			continue
+		} else {
+			buf.WriteRune(ch)
+		}
+	}
+	
 	return buf.String()
 }

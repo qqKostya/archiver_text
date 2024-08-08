@@ -1,7 +1,6 @@
 package vlc
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -59,30 +58,47 @@ func Test_encodeBin(t *testing.T) {
 	}
 }
 
-func Test_splitByChanks(t *testing.T) {
-	type args struct {
-		bStr      string
-		chunkSize int
-	}
+
+
+func TestEncode(t *testing.T) {
 	tests := []struct {
 		name string
-		args args
-		want BinaryChunks
+		str  string
+		want string
 	}{
 		{
-			name: "base test splitByChanks 1",
-			args: args{
-				bStr:      "001000100110100101",
-				chunkSize: 8,
-			},
-			want: BinaryChunks{"00100010", "01101001", "01000000"},
+			name: "base test TestEncode 1",
+			str:  "My name is Ted",
+			want: "20 30 3C 18 77 4A E4 4D 28",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := splitByChanks(tt.args.bStr, tt.args.chunkSize); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("splitByChanks() = %v, want: %v", got, tt.want)
+			if got := Encode(tt.str); got != tt.want {
+				t.Errorf("BinaryChunks_ToHex() = %v, want: %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDecode(t *testing.T) {
+	tests := []struct {
+		name string
+		encodedText  string
+		want string
+	}{
+		{
+			name: "base test",
+			encodedText: "20 30 3C 18 77 4A E4 4D 28", 
+			want: "My name is Ted",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Decode(tt.encodedText); got != tt.want {
+				t.Errorf("BinaryChunks_ToHex() = %v, want: %v", got, tt.want)
 			}
 		})
 	}
